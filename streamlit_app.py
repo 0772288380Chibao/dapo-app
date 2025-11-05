@@ -484,7 +484,7 @@ def calculate_performance_metrics(portfolio_series, trading_days=252):
         }
         return metrics
     except Exception as e:
-        return {k: 0 for k in ["Lợi nhuận Hàng năm (%)", "Lợi nhuận Tích lũy (%)", "Biến động Hàng năm (%)",
+        return {k: 0 for k in ["Lợi nhuận Tích lũy (%)", "Biến động Hàng năm (%)",
                                "Tỷ lệ Sharpe", "Tỷ lệ Sortino", "Sụt giảm Tối đa (Max DD)", "VaR (1%)",
                                "Biên độ", "Tối đa", "Tối thiểu", "Độ lệch (Skewness)", "Độ nhọn (Kurtosis)"]}
 # --- Hàm gọi API Gemini ---
@@ -499,13 +499,13 @@ def get_ai_analysis(metrics_data, api_key):
                                   for k, v in metrics_data.items()])
         
         prompt = f"""
-        Bạn là một chuyên gia phân tích tài chính chuyên nghiệp. Dựa trên các chỉ số tài chính sau, hãy đưa ra một nhận xét khách quan, ngắn gọn (khoảng 3-4 đoạn) về danh mục đầu tư. Đánh giá tập trung vào lợi nhuận, Sortino ratio và rủi ro, mức sụt giảm tối đa. Hãy giải thích dễ hiểu, phù hợp với nhà đầu tư Việt Nam, đồng thời so sánh với chỉ số VNINDEX cùng thời kì để nói lên độ tốt của danh mục cổ phiếu.
+        Bạn là một chuyên gia phân tích tài chính chuyên nghiệp. Dựa trên các chỉ số tài chính sau, hãy đưa ra một nhận xét khách quan, ngắn gọn (khoảng 3-4 đoạn) về danh mục đầu tư. Đánh giá tập trung vào lợi nhuận, Sortino ratio và rủi ro, mức sụt giảm tối đa. Hãy giải thích dễ hiểu, phù hợp với nhà đầu tư Việt Nam, đồng thời bạn hãy so sánh các chỉ số hiệu suất của danh mục với chỉ số VNINDEX cùng thời kì để nói lên độ tốt của danh mục cổ phiếu.
         
         Các chỉ số hiệu suất của danh mục:
         {metrics_text}
         
         Lưu ý:
-        - Lợi nhuận Hàng năm (%) và Lợi nhuận Tích lũy (%): Cao là tốt
+        - Lợi nhuận Tích lũy (%): Cao là tốt
         - Tỷ lệ Sharpe và Sortino: Càng cao càng tốt (>1 là tốt, >2 là rất tốt)
         - Sụt giảm Tối đa (Max DD): Là số âm, càng gần 0 càng tốt (ít rủi ro)
         - VaR (1%): Là số âm, cho biết mức lỗ tối đa có thể xảy ra

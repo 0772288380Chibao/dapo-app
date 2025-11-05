@@ -499,7 +499,7 @@ def get_ai_analysis(metrics_data, api_key):
                                   for k, v in metrics_data.items()])
         
         prompt = f"""
-        Bạn là một chuyên gia phân tích tài chính chuyên nghiệp. Dựa trên các chỉ số tài chính sau, hãy đưa ra một nhận xét khách quan, ngắn gọn (khoảng 3-4 đoạn) về danh mục đầu tư. Đánh giá tập trung vào lợi nhuận, Sortino ratio và rủi ro, mức sụt giảm tối đa. Hãy giải thích dễ hiểu, phù hợp với nhà đầu tư Việt Nam.
+        Bạn là một chuyên gia phân tích tài chính chuyên nghiệp. Dựa trên các chỉ số tài chính sau, hãy đưa ra một nhận xét khách quan, ngắn gọn (khoảng 3-4 đoạn) về danh mục đầu tư. Đánh giá tập trung vào lợi nhuận, Sortino ratio và rủi ro, mức sụt giảm tối đa. Hãy giải thích dễ hiểu, phù hợp với nhà đầu tư Việt Nam, đồng thời so sánh với chỉ số VNINDEX cùng thời kì để nói lên độ tốt của danh mục cổ phiếu.
         
         Các chỉ số hiệu suất của danh mục:
         {metrics_text}
@@ -1008,35 +1008,43 @@ if st.session_state.page == "Main":
 
         # Kiểm tra API key từ secrets
         default_api_key = ""
+        has_secret_key = False
         try:
-            if "GEMINI_API_KEY" in st.secrets:
-                default_api_key = st.secrets["GEMINI_API_KEY"]
+            if hasattr(st, 'secrets'):
+                if "GEMINI_API_KEY" in st.secrets:
+                    default_api_key = st.secrets["GEMINI_API_KEY"]
+                    has_secret_key = True
+                elif "gemini_api_key" in st.secrets:
+                    default_api_key = st.secrets["gemini_api_key"]
+                    has_secret_key = True
         except Exception:
             pass
 
-        # Ô nhập API key (tự động điền nếu có trong secrets)
-        api_key_input = st.text_input(
-            "Yêu cầu AI Phân tích:",
-            value=default_api_key,
-            type="password",
-            placeholder="Nhập Gemini API Key của bạn (hoặc đã cấu hình trong Secrets)",
-            help="API key đã được cấu hình trong Secrets" if default_api_key else "Nhập API key từ https://aistudio.google.com/app/apikey"
-        )
+        # Chỉ hiển thị ô input nếu KHÔNG có key trong secrets
+        if not has_secret_key:
+            api_key_input = st.text_input(
+                "Yêu cầu AI Phân tích:",
+                type="password",
+                placeholder="Nhập Gemini API Key của bạn (hoặc cấu hình trong Secrets)",
+                help="Nhập API key từ https://aistudio.google.com/app/apikey"
+            )
+        else:
+            # Nếu đã có key trong secrets, dùng luôn và không hiển thị
+            api_key_input = default_api_key
+            st.info("✅ API Key đã được cấu hình sẵn trong hệ thống.")
 
-        col_ai1, col_ai2 = st.columns([1, 4])
+        # Nút phân tích
+        analyze_button = st.button("📊 Phân Tích bằng AI",
+                                use_container_width=True, type="primary")
 
-        with col_ai1:
-            analyze_button = st.button("📊 Phân Tích", use_container_width=True)
-
-        with col_ai2:
-            if analyze_button:
-                if not api_key_input:
-                    st.warning(
-                        "⚠️ Vui lòng nhập Gemini API Key để sử dụng tính năng phân tích AI.")
-                else:
-                    with st.spinner("🔄 Đang phân tích bằng AI..."):
-                        ai_analysis = get_ai_analysis(metrics, api_key_input)
-                        st.session_state.ai_analysis = ai_analysis
+        if analyze_button:
+            if not api_key_input:
+                st.warning(
+                    "⚠️ Vui lòng nhập Gemini API Key để sử dụng tính năng phân tích AI.")
+            else:
+                with st.spinner("🔄 Đang phân tích bằng AI..."):
+                    ai_analysis = get_ai_analysis(metrics, api_key_input)
+                    st.session_state.ai_analysis = ai_analysis
 
         # Hiển thị kết quả phân tích nếu có
         if "ai_analysis" in st.session_state and st.session_state.ai_analysis:
